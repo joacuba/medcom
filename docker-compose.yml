@@ -1,0 +1,84 @@
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: medcom_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    networks:
+      - medcom_network
+
+  # OSRM Routing Engine
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: medcom_osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data/osm:/data
+    command: >
+      sh -c "
+        wget https://download.geofabrik.de/south-america/peru-latest.osm.pbf -O /data/peru-latest.osm.pbf &&
+        osrm-extract -p /opt/car.lua /data/peru-latest.osm.pbf &&
+        osrm-partition /data/peru-latest.osrm &&
+        osrm-customize /data/peru-latest.osrm &&
+        osrm-routed --algorithm mld /data/peru-latest.osrm
+      "
+    networks:
+      - medcom_network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medcom_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://admin:password@mongodb:27017/?authSource=admin
+      - DATABASE_NAME=medcom_routing
+      - OSRM_BASE_URL=http://osrm:5000
+      - K_NEAREST_NEIGHBORS=10
+      - MAX_GRAPH_SIZE=1000
+      - BENCHMARK_TIMEOUT=300
+      - PYTHONPATH=/app/src
+    depends_on:
+      - mongodb
+      - osrm
+    networks:
+      - medcom_network
+    volumes:
+      - ./backend:/app
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: medcom_frontend
+    ports:
+      - "3000:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - medcom_network
+    volumes:
+      - ./frontend:/app
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+
+volumes:
+  mongodb_data:
+
+networks:
+  medcom_network:
+    driver: bridge 

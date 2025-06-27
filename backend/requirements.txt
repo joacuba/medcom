@@ -1,0 +1,8 @@
+fastapi
+beanie
+motor
+pydantic[email]
+email-validator
+uvicorn[standard] 
+httpx
+ortools
