@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { runBenchmark } from "@/api/benchmark"
 import { getUsers } from "@/api/users"
 import { getDoctors } from "@/api/doctors"
+import { UserTableSelector } from "@/components/users-table/UserTableSelector"
 
 function BarChart({ timings }: { timings: Record<string, number> }) {
   const max = Math.max(...Object.values(timings), 1)
@@ -68,9 +69,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
 
   const handleStart = async () => {
+    console.log("Start button clicked", { doctorId, userIds })
     if (!doctorId || userIds.length === 0) return
     setLoading(true)
     try {
+      console.log("Selected user IDs:", userIds)
       const res = await runBenchmark({ doctorId, userIds })
       setTimings({
         floydWarshall: res.floydWarshallTime,
@@ -102,7 +105,9 @@ export default function Dashboard() {
           <TabsContent value="map">
             <div className="flex gap-4 mb-4">
               <DoctorSelector value={doctorId} onChange={setDoctorId} />
-              <UserSelector value={userIds} onChange={setUserIds} />
+              <div className="flex-1">
+                <UserTableSelector value={userIds} onChange={setUserIds} />
+              </div>
               <Button onClick={handleStart} disabled={loading || !doctorId || userIds.length === 0}>
                 {loading ? "Running..." : "Start"}
               </Button>

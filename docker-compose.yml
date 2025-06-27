@@ -23,7 +23,6 @@ services:
       - ./data/osm:/data
     command: >
       sh -c "
-        wget https://download.geofabrik.de/south-america/peru-latest.osm.pbf -O /data/peru-latest.osm.pbf &&
         osrm-extract -p /opt/car.lua /data/peru-latest.osm.pbf &&
         osrm-partition /data/peru-latest.osrm &&
         osrm-customize /data/peru-latest.osrm &&

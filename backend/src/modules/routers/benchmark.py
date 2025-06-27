@@ -6,6 +6,7 @@ from modules.models.doctor import Doctor
 from modules.models.user import User
 from modules.preprocess.graph_builder import Node, build_sparse_graph
 from modules.preprocess.osrm_client import OSRMClient
+from modules.config import OSRM_BASE_URL
 
 router = APIRouter(prefix="/api/benchmark", tags=["benchmark"])
 
@@ -30,7 +31,7 @@ async def run_benchmark(data: BenchmarkRequest):
             waypoints.append(Node(str(i), user.latitude, user.longitude))
 
     # Build sparse graph (adjacency list)
-    osrm_client = OSRMClient()
+    osrm_client = OSRMClient(base_url=OSRM_BASE_URL)
     k = 4  # or load from config
     adj_list = await build_sparse_graph(waypoints, k, osrm_client)
 

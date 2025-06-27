@@ -22,6 +22,9 @@ BENCHMARK_TIMEOUT = int(os.getenv("BENCHMARK_TIMEOUT", "300"))  # 5 minutes
 async def init_db():
     """Initialize database connection and Beanie ODM"""
     client = AsyncIOMotorClient(MONGODB_URL)
+    print(f"Connected to MongoDB: {MONGODB_URL}")
+    print(f"Database name: {DATABASE_NAME}")
+    print(f"OSRM base URL: {OSRM_BASE_URL}")
     await init_beanie(
         database=client[DATABASE_NAME],
         document_models=[User, Doctor, Recommendation]

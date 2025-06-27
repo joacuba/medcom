@@ -32,3 +32,4 @@
 .cursorignore
 /backend/build
 project-outline.md
+data/
