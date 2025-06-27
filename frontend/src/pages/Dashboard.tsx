@@ -12,19 +12,21 @@ import { getDoctors } from "@/api/doctors"
 import { UserTableSelector } from "@/components/users-table/UserTableSelector"
 
 function BarChart({ timings }: { timings: Record<string, number> }) {
-  const max = Math.max(...Object.values(timings), 1)
+  const max = Math.max(...Object.values(timings).filter(v => typeof v === "number"), 1)
   return (
     <div className="flex gap-4 items-end h-32 mt-4">
-      {Object.entries(timings).map(([k, v]) => (
-        <div key={k} className="flex flex-col items-center">
-          <div
-            className="bg-primary w-8 rounded"
-            style={{ height: `${(v / max) * 100}%` }}
-            title={v.toFixed(3) + "s"}
-          />
-          <span className="text-xs mt-1">{k}</span>
-        </div>
-      ))}
+      {Object.entries(timings)
+        .filter(([_, v]) => typeof v === "number" && !isNaN(v))
+        .map(([k, v]) => (
+          <div key={k} className="flex flex-col items-center">
+            <div
+              className="bg-primary w-8 rounded"
+              style={{ height: `${(v / max) * 100}%` }}
+              title={v.toFixed(3) + "s"}
+            />
+            <span className="text-xs mt-1">{k}</span>
+          </div>
+        ))}
     </div>
   )
 }
@@ -80,7 +82,7 @@ export default function Dashboard() {
         dijkstra: res.dijkstraTime,
         bellmanFord: res.bellmanFordTime,
       })
-      setTspOrder(res.tspRouteOrder)
+      setTspOrder(Array.isArray(res.tspRouteOrder) ? res.tspRouteOrder : [])
       setRoute(res.routeGeometry)
     } finally {
       setLoading(false)

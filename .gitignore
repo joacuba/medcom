@@ -33,3 +33,4 @@
 /backend/build
 project-outline.md
 data/
+/backend/pyrightconfig.json
