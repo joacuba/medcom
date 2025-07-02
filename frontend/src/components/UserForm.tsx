@@ -16,6 +16,7 @@ import { useApi } from "@/hooks/useApi"
 const formSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
+  age: z.union([z.string().regex(/^\d+$/).min(1), z.literal("")]).optional(),
   latitude: z.string(),
   longitude: z.string(),
   phone_number: z.string().optional(),
@@ -35,6 +36,9 @@ export function UserForm() {
       email: values.email,
       latitude: parseFloat(values.latitude),
       longitude: parseFloat(values.longitude),
+    }
+    if (values.age && values.age !== "") {
+      payload.age = parseInt(values.age, 10)
     }
     if (values.phone_number && values.phone_number.trim() !== "") {
       payload.phone_number = values.phone_number
@@ -67,6 +71,19 @@ export function UserForm() {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input type="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="age"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Age</FormLabel>
+              <FormControl>
+                <Input type="number" min="0" step="1" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
