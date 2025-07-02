@@ -114,6 +114,9 @@ export default function Dashboard() {
       <main className="flex-1 p-6 overflow-auto">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsContent value="map">
+            <div className="mt-6 h-[400px]">
+              <Map route={route} />
+            </div>
             <div className="flex gap-4 mb-4">
               <DoctorSelector value={doctorId} onChange={setDoctorId} />
               <div className="flex-1">
@@ -129,9 +132,6 @@ export default function Dashboard() {
                 <b>TSP Order:</b> {tspOrder.join(", ")}
               </div>
             )}
-            <div className="mt-6 h-[400px]">
-              <Map route={route} />
-            </div>
           </TabsContent>
           <TabsContent value="doctors">
             <DoctorsList />
