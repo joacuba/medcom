@@ -10,3 +10,10 @@ A full-stack medical routing and benchmarking application with FastAPI backend, 
 - **TSP Solver**: Traveling Salesman Problem optimization using Google OR-Tools
 - **Benchmarking**: Performance comparison of different routing algorithms
 - **Modern UI**: React frontend with responsive design
+
+For get the OSRM runing with geofabric data run this commands in the project dir
+
+```bash
+mkdir -p ./data/osm
+wget https://download.geofabrik.de/south-america/peru-latest.osm.pbf -O ./data/osm/peru-latest.osm.pbf
+```

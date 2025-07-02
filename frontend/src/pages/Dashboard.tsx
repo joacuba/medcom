@@ -83,7 +83,16 @@ export default function Dashboard() {
         bellmanFord: res.bellmanFordTime,
       })
       setTspOrder(Array.isArray(res.tspRouteOrder) ? res.tspRouteOrder : [])
-      setRoute(res.routeGeometry)
+      setRoute(res.routeGeoJSON && Array.isArray(res.routeGeoJSON)
+        ? {
+            type: "FeatureCollection",
+            features: res.routeGeoJSON.map((geometry: any) => ({
+              type: "Feature",
+              geometry,
+              properties: {},
+            })),
+          }
+        : undefined)
     } finally {
       setLoading(false)
     }
