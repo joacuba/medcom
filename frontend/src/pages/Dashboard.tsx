@@ -12,23 +12,29 @@ import { getDoctors } from "@/api/doctors"
 import { UserTableSelector } from "@/components/users-table/UserTableSelector"
 
 function BarChart({ timings }: { timings: Record<string, number> }) {
-  const max = Math.max(...Object.values(timings).filter(v => typeof v === "number"), 1)
+  // Scale to microseconds for better visualization
+  const scaledTimings = Object.fromEntries(
+    Object.entries(timings).map(([k, v]) => [k, v * 1e6])
+  );
+  const max = Math.max(...Object.values(scaledTimings).filter(v => typeof v === "number"), 1);
+
   return (
     <div className="flex gap-4 items-end h-32 mt-4">
-      {Object.entries(timings)
+      {Object.entries(scaledTimings)
         .filter(([_, v]) => typeof v === "number" && !isNaN(v))
         .map(([k, v]) => (
           <div key={k} className="flex flex-col items-center">
             <div
               className="bg-primary w-8 rounded"
               style={{ height: `${(v / max) * 100}%` }}
-              title={v.toFixed(3) + "s"}
+              title={v.toFixed(2) + " μs"}
             />
             <span className="text-xs mt-1">{k}</span>
+            <span className="text-xs">{v.toFixed(2)} μs</span>
           </div>
         ))}
     </div>
-  )
+  );
 }
 
 function UsersList() {
@@ -78,7 +84,7 @@ export default function Dashboard() {
       console.log("Selected user IDs:", userIds)
       const res = await runBenchmark({ doctorId, userIds })
       setTimings({
-        floydWarshall: res.floydWarshallTime,
+        floydWarshall: res.fwTime,
         dijkstra: res.dijkstraTime,
         bellmanFord: res.bellmanFordTime,
       })
