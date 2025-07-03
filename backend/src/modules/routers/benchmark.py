@@ -47,10 +47,10 @@ async def run_benchmark(data: BenchmarkRequest):
     # Run benchmarks
     results = benchmark_algorithms(adj_matrix, adj_list)
 
-    # Get route geometry from doctor to all users (as a simple example)
+    # Get route geometry from doctor to users in chain
     route_geojson = []
     for i in range(1, n):
-        route = await osrm_client.get_route("0", str(i), [
+        route = await osrm_client.get_route(str(i - 1), str(i), [
             {"latitude": wp.latitude, "longitude": wp.longitude} for wp in waypoints
         ])
         route_geojson.append(route['geometry'])

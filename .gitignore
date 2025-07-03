@@ -27,7 +27,7 @@
 /backend/logs
 /backend/*.log
 /backend/.myenv
-/backend/__pycache__
+**/__pycache__/
 /backend/dist
 .cursorignore
 /backend/build
