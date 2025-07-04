@@ -26,7 +26,7 @@ def dijkstra_all_pairs(adj_list):
     all_dist = {}
     for node in adj_list:
         all_dist[node] = dijkstra(node)
-    return all_dist
+    return all_dist 
 
 # New function for visiting order
 def dijkstra_route(adj_list: Dict[int, List[Tuple[int, float]]], start_idx: int, user_indices: List[int]) -> List[int]:

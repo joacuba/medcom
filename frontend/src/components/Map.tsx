@@ -1,10 +1,10 @@
-import { MapContainer, TileLayer, Polyline, GeoJSON } from "react-leaflet"
+import { MapContainer, TileLayer, Polyline, GeoJSON, Marker, Popup } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import type { LatLngTuple } from "leaflet"
 
 const LIMA: LatLngTuple = [-12.0464, -77.0428]
 
-export function Map({ route }: { route?: any }) {
+export function Map({ route, selectedUsers = [] }: { route?: any, selectedUsers?: any[] }) {
   console.log("Map component received route:", route);
   // Use a stringified version of the route as a key to force remount
   const geoJsonKey = route ? JSON.stringify(route) : "empty";
@@ -19,6 +19,17 @@ export function Map({ route }: { route?: any }) {
       ) : route && Array.isArray(route) ? (
         <Polyline positions={route} color="blue" />
       ) : null}
+      {selectedUsers.map(user => (
+        <Marker key={user._id} position={[user.latitude, user.longitude]}>
+          <Popup>
+            <div>
+              <div><b>{user.name}</b></div>
+              <div>Lat: {user.latitude}</div>
+              <div>Lng: {user.longitude}</div>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   )
 } 

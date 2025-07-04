@@ -17,6 +17,15 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  LayoutDashboard,
+  ActivitySquare,
+  BarChart2,
+  Folder,
+  Users,
+  UserPlus,
+  UserCheck,
+} from "lucide-react";
 
 function BarChart({ timings }: { timings: Record<string, number> }) {
   // Scale to microseconds for better visualization
@@ -90,6 +99,13 @@ export default function Dashboard() {
   const [route, setRoute] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [algorithm, setAlgorithm] = useState<string>("tsp");
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    getUsers().then(setAllUsers);
+  }, []);
+
+  const selectedUsers = allUsers.filter(u => userIds.includes(u._id));
 
   const handleStart = async () => {
     console.log("Start button clicked", { doctorId, userIds, algorithm });
@@ -124,19 +140,49 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen">
-      <aside className="w-64 border-r bg-muted h-screen flex flex-col overflow-auto p-4">
+      <aside className="w-64 min-h-screen flex-shrink-0 flex flex-col bg-white border-r shadow-sm p-4">
         <Tabs
           value={tab}
           onValueChange={setTab}
           orientation="vertical"
-          className="flex-1 flex flex-col"
+          className="flex-1 flex flex-col justify-start content-start"
         >
-          <TabsList className="flex flex-col gap-2 justify-start">
-            <TabsTrigger value="map">Dashboard</TabsTrigger>
-            <TabsTrigger value="doctors">Doctors</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="add-user">Add User</TabsTrigger>
-            <TabsTrigger value="add-doctor">Add Doctor</TabsTrigger>
+          <TabsList className="flex flex-col justify-start content-start w-full gap-4 bg-transparent shadow-none border-none p-0">
+            <TabsTrigger
+              value="map"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger
+              value="doctors"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+            >
+              <UserCheck className="w-5 h-5" />
+              Doctors
+            </TabsTrigger>
+            <TabsTrigger
+              value="users"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+            >
+              <Users className="w-5 h-5" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger
+              value="add-user"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+            >
+              <UserPlus className="w-5 h-5" />
+              Add User
+            </TabsTrigger>
+            <TabsTrigger
+              value="add-doctor"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+            >
+              <ActivitySquare className="w-5 h-5" />
+              Add Doctor
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </aside>
@@ -144,7 +190,7 @@ export default function Dashboard() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsContent value="map">
             <div className="mt-6 mb-6 h-[400px]">
-              <Map route={route} />
+              <Map route={route} selectedUsers={selectedUsers} />
             </div>
             <div className="flex gap-4 mb-4">
               <DoctorSelector value={doctorId} onChange={setDoctorId} />

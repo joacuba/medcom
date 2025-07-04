@@ -14,7 +14,7 @@ def floyd_warshall(adj_matrix):
             for j in range(n):
                 if dist[i][k] + dist[k][j] < dist[i][j]:
                     dist[i][j] = dist[i][k] + dist[k][j]
-    return dist
+    return dist 
 
 # New function for visiting order
 def floyd_warshall_route(adj_matrix, start_idx, user_indices):

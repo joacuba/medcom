@@ -18,7 +18,7 @@ def bellman_ford_all_pairs(adj_list):
                     if dist[u] + w < dist[v]:
                         dist[v] = dist[u] + w
         all_dist[src] = dist
-    return all_dist
+    return all_dist 
 
 # New function for visiting order
 def bellman_ford_route(adj_list, start_idx, user_indices):
