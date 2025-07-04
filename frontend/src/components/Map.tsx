@@ -4,7 +4,7 @@ import type { LatLngTuple } from "leaflet"
 
 const LIMA: LatLngTuple = [-12.0464, -77.0428]
 
-export function Map({ route, selectedUsers = [] }: { route?: any, selectedUsers?: any[] }) {
+export function Map({ route, selectedUsers = [], selectedDoctor }: { route?: any, selectedUsers?: any[], selectedDoctor?: any }) {
   console.log("Map component received route:", route);
   // Use a stringified version of the route as a key to force remount
   const geoJsonKey = route ? JSON.stringify(route) : "empty";
@@ -30,6 +30,17 @@ export function Map({ route, selectedUsers = [] }: { route?: any, selectedUsers?
           </Popup>
         </Marker>
       ))}
+      {selectedDoctor && (
+        <Marker key={selectedDoctor._id} position={[selectedDoctor.latitude, selectedDoctor.longitude]}>
+          <Popup>
+            <div>
+              <div><b>{selectedDoctor.name}</b></div>
+              <div>Lat: {selectedDoctor.latitude}</div>
+              <div>Lng: {selectedDoctor.longitude}</div>
+            </div>
+          </Popup>
+        </Marker>
+      )}
     </MapContainer>
   )
 } 

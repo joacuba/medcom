@@ -100,12 +100,15 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [algorithm, setAlgorithm] = useState<string>("tsp");
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allDoctors, setAllDoctors] = useState<any[]>([]);
 
   useEffect(() => {
     getUsers().then(setAllUsers);
+    getDoctors().then(setAllDoctors);
   }, []);
 
   const selectedUsers = allUsers.filter(u => userIds.includes(u._id));
+  const selectedDoctor = allDoctors.find(d => d._id === doctorId);
 
   const handleStart = async () => {
     console.log("Start button clicked", { doctorId, userIds, algorithm });
@@ -190,7 +193,7 @@ export default function Dashboard() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsContent value="map">
             <div className="mt-6 mb-6 h-[400px]">
-              <Map route={route} selectedUsers={selectedUsers} />
+              <Map route={route} selectedUsers={selectedUsers} selectedDoctor={selectedDoctor} />
             </div>
             <div className="flex gap-4 mb-4">
               <DoctorSelector value={doctorId} onChange={setDoctorId} />
