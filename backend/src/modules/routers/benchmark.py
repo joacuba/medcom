@@ -7,12 +7,17 @@ from modules.models.user import User
 from modules.preprocess.graph_builder import Node, build_sparse_graph
 from modules.preprocess.osrm_client import OSRMClient
 from modules.config import OSRM_BASE_URL
+from modules.algorithms.tsp_solver import solve_tsp
+from modules.algorithms.dijkstra_all_pairs import dijkstra_route
+from modules.algorithms.bellman_ford_all_pairs import bellman_ford_route
+from modules.algorithms.floyd_warshall import floyd_warshall_route
 
 router = APIRouter(prefix="/api/benchmark", tags=["benchmark"])
 
 class BenchmarkRequest(BaseModel):
     doctorId: str
     userIds: List[str]
+    algorithm: str = "tsp"
 
 @router.post("/", response_model=Dict[str, Any])
 async def run_benchmark(data: BenchmarkRequest):
@@ -47,13 +52,47 @@ async def run_benchmark(data: BenchmarkRequest):
     # Run benchmarks
     results = benchmark_algorithms(adj_matrix, adj_list)
 
-    # Get route geometry from doctor to users in chain
+    # Determine visiting order based on selected algorithm
+    start_idx = 0
+    user_indices = list(range(1, n))
+    visiting_order = []
+    if data.algorithm == "tsp":
+        visiting_order = solve_tsp(adj_matrix)
+    elif data.algorithm == "dijkstra":
+        visiting_order = dijkstra_route(adj_list, start_idx, user_indices)
+    elif data.algorithm == "bellmanFord":
+        visiting_order = bellman_ford_route(adj_list, start_idx, user_indices)
+    elif data.algorithm == "floydWarshall":
+        visiting_order = floyd_warshall_route(adj_matrix, start_idx, user_indices)
+    else:
+        visiting_order = [0] + user_indices  # fallback: doctor then users in order
+
+    # Ensure visiting_order is valid and starts at 0
+    if not visiting_order or visiting_order[0] != 0:
+        visiting_order = [0] + [i for i in user_indices if i != 0]
+
+    # Map visiting_order indices to coordinates
+    ordered_coords = [
+        {"latitude": waypoints[i].latitude, "longitude": waypoints[i].longitude}
+        for i in visiting_order
+    ]
+
+    # Get full route geometry for the visiting order
+    visiting_order_route = await osrm_client.get_full_route(ordered_coords)
+
+    # Get route geometry for each segment (as before)
     route_geojson = []
-    for i in range(1, n):
-        route = await osrm_client.get_route(str(i - 1), str(i), [
+    for i in range(1, len(visiting_order)):
+        i_from = visiting_order[i - 1]
+        i_to = visiting_order[i]
+        route = await osrm_client.get_route(str(i_from), str(i_to), [
             {"latitude": wp.latitude, "longitude": wp.longitude} for wp in waypoints
         ])
         route_geojson.append(route['geometry'])
 
-    results['routeGeoJSON'] = route_geojson
+    if data.algorithm == "tsp":
+        results['routeGeoJSON'] = route_geojson
+    else:
+        results['routeGeoJSON'] = [visiting_order_route['geometry']]
+    results['tspRouteOrder'] = visiting_order
     return results 

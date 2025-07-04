@@ -90,3 +90,27 @@ class OSRMClient:
                 'duration': route['duration'],  # seconds
                 'geometry': route['geometry']   # GeoJSON LineString
             } 
+    
+    async def get_full_route(self, waypoints: List[Dict[str, float]]) -> Dict[str, Any]:
+        """
+        Get route for a sequence of waypoints using OSRM route service.
+        Args:
+            waypoints: List of waypoints with lat/lon coordinates (ordered)
+        Returns:
+            Route information including distance, duration, and GeoJSON geometry
+        """
+        if len(waypoints) < 2:
+            raise ValueError("At least two waypoints are required for a route.")
+        # Format: "lon1,lat1;lon2,lat2;..."
+        coordinates = ";".join(f"{wp['longitude']},{wp['latitude']}" for wp in waypoints)
+        url = f"{self.base_url}/route/v1/driving/{coordinates}?overview=full&geometries=geojson"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            route = data['routes'][0]
+            return {
+                'distance': route['distance'],
+                'duration': route['duration'],
+                'geometry': route['geometry']
+            } 
