@@ -114,3 +114,20 @@ class OSRMClient:
                 'duration': route['duration'],
                 'geometry': route['geometry']
             } 
+    
+    async def get_duration_matrix(self, waypoints: List[Dict[str, float]]) -> Any:
+        """
+        Get the duration matrix (in seconds) between all waypoints using OSRM table service.
+        Args:
+            waypoints: List of waypoints with lat/lon coordinates
+        Returns:
+            durations: 2D list of durations in seconds
+        """
+        coords = [f"{wp['longitude']},{wp['latitude']}" for wp in waypoints]
+        coordinates = ";".join(coords)
+        url = f"{self.base_url}/table/v1/driving/{coordinates}?annotations=duration"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            return data['durations'] 

@@ -9,7 +9,7 @@ export function Map({ route, selectedUsers = [], selectedDoctor }: { route?: any
   // Use a stringified version of the route as a key to force remount
   const geoJsonKey = route ? JSON.stringify(route) : "empty";
   return (
-    <MapContainer center={LIMA} zoom={12} style={{ height: "100%", width: "100%" }}>
+    <MapContainer center={LIMA} zoom={12} style={{ height: "100%", width: "100%", borderRadius: "10px" }}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"

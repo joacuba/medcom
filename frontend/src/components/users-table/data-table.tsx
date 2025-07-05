@@ -21,9 +21,11 @@ type DataTableProps = {
   data: User[]
   value: string[]
   onChange: (userIds: string[]) => void
+  priorities: { [userId: string]: boolean }
+  onPriorityChange: (userId: string, value: boolean) => void
 }
 
-export function DataTable({ data, value, onChange }: DataTableProps) {
+export function DataTable({ data, value, onChange, priorities, onPriorityChange }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -62,6 +64,10 @@ export function DataTable({ data, value, onChange }: DataTableProps) {
       rowSelection,
     },
     enableRowSelection: true,
+    meta: {
+      priorities,
+      onPriorityChange,
+    },
   })
 
   return (
@@ -78,7 +84,7 @@ export function DataTable({ data, value, onChange }: DataTableProps) {
       </div>
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#FFEDD5]">
             {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
@@ -93,7 +99,14 @@ export function DataTable({ data, value, onChange }: DataTableProps) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.map(row => (
-              <TableRow key={row.id} className={row.getIsSelected() ? "bg-muted" : ""}>
+              <TableRow
+                key={row.id}
+                className={
+                  row.getIsSelected()
+                    ? "bg-green-50 hover:bg-green-100"
+                    : "hover:bg-orange-100"
+                }
+              >
                 {row.getVisibleCells().map(cell => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -105,10 +118,10 @@ export function DataTable({ data, value, onChange }: DataTableProps) {
         </Table>
       </div>
       <div className="flex gap-2 mt-2">
-        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="bg-[#FFDAA8] hover:bg-[#FFD7A2]">
           {"<"}
         </Button>
-        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="bg-[#FFDAA8] hover:bg-[#FFD7A2]">
           {">"}
         </Button>
         <span className="text-xs self-center">

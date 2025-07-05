@@ -21,7 +21,7 @@ def bellman_ford_all_pairs(adj_list):
     return all_dist 
 
 # New function for visiting order
-def bellman_ford_route(adj_list, start_idx, user_indices):
+def bellman_ford_route(adj_list, start_idx, user_indices, priorities=None, idx_to_userid=None):
     """
     Returns a visiting order using a greedy nearest neighbor approach with Bellman-Ford algorithm.
     """
@@ -39,8 +39,14 @@ def bellman_ford_route(adj_list, start_idx, user_indices):
                 for v, w in adj_list[u]:
                     if dist[u] + w < dist[v]:
                         dist[v] = dist[u] + w
-        # Find nearest unvisited
-        next_node = min(unvisited, key=lambda x: dist[x])
+        # Prefer priority nodes if any are unvisited
+        next_node = None
+        if priorities and idx_to_userid:
+            priority_unvisited = [x for x in unvisited if priorities.get(idx_to_userid.get(x))]
+            if priority_unvisited:
+                next_node = min(priority_unvisited, key=lambda x: dist[x])
+        if next_node is None:
+            next_node = min(unvisited, key=lambda x: dist[x])
         order.append(next_node)
         unvisited.remove(next_node)
         current = next_node

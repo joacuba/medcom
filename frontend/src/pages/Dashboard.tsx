@@ -26,6 +26,14 @@ import {
   UserPlus,
   UserCheck,
 } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 
 function BarChart({ timings }: { timings: Record<string, number> }) {
   // Scale to microseconds for better visualization
@@ -63,13 +71,30 @@ function UsersList() {
   }, []);
   if (users.length === 0) return <p>No users found.</p>;
   return (
-    <ul>
-      {users.map((u) => (
-        <li key={u._id}>
-          {u.name} ({u.email})
-        </li>
-      ))}
-    </ul>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Age</TableHead>
+          <TableHead>Phone</TableHead>
+          <TableHead>Latitude</TableHead>
+          <TableHead>Longitude</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {users.map((u) => (
+          <TableRow key={u._id}>
+            <TableCell>{u.name}</TableCell>
+            <TableCell>{u.email}</TableCell>
+            <TableCell>{u.age ?? '-'}</TableCell>
+            <TableCell>{u.phone_number ?? '-'}</TableCell>
+            <TableCell>{u.latitude}</TableCell>
+            <TableCell>{u.longitude}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -80,13 +105,24 @@ function DoctorsList() {
   }, []);
   if (doctors.length === 0) return <p>No doctors found.</p>;
   return (
-    <ul>
-      {doctors.map((d) => (
-        <li key={d._id}>
-          {d.name} ({d.email}) - {d.specialty}
-        </li>
-      ))}
-    </ul>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Specialty</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {doctors.map((d) => (
+          <TableRow key={d._id}>
+            <TableCell>{d.name}</TableCell>
+            <TableCell>{d.email}</TableCell>
+            <TableCell>{d.specialty}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -101,6 +137,8 @@ export default function Dashboard() {
   const [algorithm, setAlgorithm] = useState<string>("tsp");
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [allDoctors, setAllDoctors] = useState<any[]>([]);
+  const [totalTime, setTotalTime] = useState<number | null>(null);
+  const [priorities, setPriorities] = useState<{ [userId: string]: boolean }>({});
 
   useEffect(() => {
     getUsers().then(setAllUsers);
@@ -116,7 +154,7 @@ export default function Dashboard() {
     setLoading(true);
     try {
       console.log("Selected user IDs:", userIds);
-      const res = await runBenchmark({ doctorId, userIds, algorithm });
+      const res = await runBenchmark({ doctorId, userIds, algorithm, priorities });
       setTimings({
         floydWarshall: res.fwTime,
         dijkstra: res.dijkstraTime,
@@ -135,6 +173,7 @@ export default function Dashboard() {
             }
           : undefined,
       );
+      setTotalTime(typeof res.totalTime === "number" ? res.totalTime : null);
       console.log("New route set:", res.routeGeoJSON);
     } finally {
       setLoading(false);
@@ -142,46 +181,46 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen">
-      <aside className="w-64 min-h-screen flex-shrink-0 flex flex-col bg-white border-r shadow-sm p-4">
+    <div className="flex h-screen bg-[#FFF7ED]">
+      <aside className="w-64 min-h-screen flex-shrink-0 flex flex-col bg-white border-r shadow-sm bg-[#FFF7ED]">
         <Tabs
           value={tab}
           onValueChange={setTab}
           orientation="vertical"
-          className="flex-1 flex flex-col justify-start content-start"
+          className="flex-1 flex p-4 flex-col justify-start content-start bg-[#FFF7ED]"
         >
           <TabsList className="flex flex-col justify-start content-start w-full gap-4 bg-transparent shadow-none border-none p-0">
             <TabsTrigger
               value="map"
-              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-[#FFDAA8] transition-colors data-[state=active]:bg-[#FFDAA8] data-[state=active]:text-primary justify-start text-left"
             >
               <LayoutDashboard className="w-5 h-5" />
               Dashboard
             </TabsTrigger>
             <TabsTrigger
               value="doctors"
-              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-[#FFDAA8] transition-colors data-[state=active]:bg-[#FFD7A2] data-[state=active]:text-primary justify-start text-left"
             >
               <UserCheck className="w-5 h-5" />
               Doctors
             </TabsTrigger>
             <TabsTrigger
               value="users"
-              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-[#FFDAA8] transition-colors data-[state=active]:bg-[#FFD7A2] data-[state=active]:text-primary justify-start text-left"
             >
               <Users className="w-5 h-5" />
               Users
             </TabsTrigger>
             <TabsTrigger
               value="add-user"
-              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-[#FFDAA8] transition-colors data-[state=active]:bg-[#FFD7A2] data-[state=active]:text-primary justify-start text-left"
             >
               <UserPlus className="w-5 h-5" />
               Add User
             </TabsTrigger>
             <TabsTrigger
               value="add-doctor"
-              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-100 transition-colors data-[state=active]:bg-gray-200 data-[state=active]:text-primary justify-start text-left"
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-base font-semibold text-gray-700 hover:bg-[#FFDAA8] transition-colors data-[state=active]:bg-[#FFD7A2] data-[state=active]:text-primary justify-start text-left"
             >
               <ActivitySquare className="w-5 h-5" />
               Add Doctor
@@ -189,16 +228,26 @@ export default function Dashboard() {
           </TabsList>
         </Tabs>
       </aside>
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 p-6 overflow-auto bg-[#FFF7ED]">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsContent value="map">
             <div className="mt-6 mb-6 h-[400px]">
               <Map route={route} selectedUsers={selectedUsers} selectedDoctor={selectedDoctor} />
             </div>
+            {totalTime !== null && (
+              <div className="mb-4 text-lg font-semibold text-gray-700">
+                Total travel time: {(totalTime / 60).toFixed(1)} min
+              </div>
+            )}
             <div className="flex gap-4 mb-4">
               <DoctorSelector value={doctorId} onChange={setDoctorId} />
               <div className="flex-1">
-                <UserTableSelector value={userIds} onChange={setUserIds} />
+                <UserTableSelector
+                  value={userIds}
+                  onChange={setUserIds}
+                  priorities={priorities}
+                  onPrioritiesChange={setPriorities}
+                />
               </div>
               <div>
                 <Select value={algorithm} onValueChange={setAlgorithm}>
@@ -218,6 +267,11 @@ export default function Dashboard() {
               <Button
                 onClick={handleStart}
                 disabled={loading || !doctorId || userIds.length === 0}
+                className={
+                  loading || !doctorId || userIds.length === 0
+                    ? "bg-[#FB923C] text-white cursor-not-allowed"
+                    : "bg-[#22C55E] hover:bg-blue-700 text-white"
+                }
               >
                 {loading ? "Running..." : "Start"}
               </Button>

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from modules.benchmark.runner import benchmark_algorithms
 from modules.models.doctor import Doctor
 from modules.models.user import User
@@ -18,6 +18,7 @@ class BenchmarkRequest(BaseModel):
     doctorId: str
     userIds: List[str]
     algorithm: str = "tsp"
+    priorities: Optional[Dict[str, bool]] = None
 
 @router.post("/", response_model=Dict[str, Any])
 async def run_benchmark(data: BenchmarkRequest):
@@ -49,6 +50,32 @@ async def run_benchmark(data: BenchmarkRequest):
         for j, w in neighbors:
             adj_matrix[i][j] = w
 
+    # --- NEW: Apply priorities to adjacency/duration matrix for Bellman-Ford and Floyd-Warshall ---
+    if data.priorities and data.algorithm in ("bellmanFord", "floydWarshall"):
+        idx_to_userid = {i: data.userIds[i-1] for i in range(1, n)}
+        idx_to_userid[0] = data.doctorId
+        for from_idx in range(n):
+            user_id = idx_to_userid.get(from_idx)
+            if user_id and data.priorities.get(user_id):
+                for to_idx in range(n):
+                    if from_idx != to_idx and adj_matrix[from_idx][to_idx] > 0:
+                        adj_matrix[from_idx][to_idx] = -1e6  # Strong negative edge
+    # --- END NEW ---
+
+    # --- NEW: Rebuild adj_list from adj_matrix for Bellman-Ford ---
+    def matrix_to_adj_list(matrix):
+        n = len(matrix)
+        adj_list = {}
+        for i in range(n):
+            adj_list[i] = []
+            for j in range(n):
+                if i != j and matrix[i][j] != float('inf'):
+                    adj_list[i].append((j, matrix[i][j]))
+        return adj_list
+    if data.algorithm == "bellmanFord":
+        adj_list = matrix_to_adj_list(adj_matrix)
+    # --- END NEW ---
+
     # Run benchmarks
     results = benchmark_algorithms(adj_matrix, adj_list)
 
@@ -61,7 +88,13 @@ async def run_benchmark(data: BenchmarkRequest):
     elif data.algorithm == "dijkstra":
         visiting_order = dijkstra_route(adj_list, start_idx, user_indices)
     elif data.algorithm == "bellmanFord":
-        visiting_order = bellman_ford_route(adj_list, start_idx, user_indices)
+        idx_to_userid = {i: data.userIds[i-1] for i in range(1, n)}
+        idx_to_userid[0] = data.doctorId
+        visiting_order = bellman_ford_route(
+            adj_list, start_idx, user_indices,
+            priorities=data.priorities,
+            idx_to_userid=idx_to_userid
+        )
     elif data.algorithm == "floydWarshall":
         visiting_order = floyd_warshall_route(adj_matrix, start_idx, user_indices)
     else:
@@ -89,6 +122,20 @@ async def run_benchmark(data: BenchmarkRequest):
             {"latitude": wp.latitude, "longitude": wp.longitude} for wp in waypoints
         ])
         route_geojson.append(route['geometry'])
+
+    # --- NEW: Get total time for the optimal route ---
+    # Get duration matrix for all waypoints
+    waypoint_dicts = [{"latitude": wp.latitude, "longitude": wp.longitude} for wp in waypoints]
+    durations = await osrm_client.get_duration_matrix(waypoint_dicts)
+    total_time = 0.0
+    for i in range(1, len(visiting_order)):
+        from_idx = visiting_order[i-1]
+        to_idx = visiting_order[i]
+        seg_time = durations[from_idx][to_idx]
+        if seg_time is not None:
+            total_time += seg_time
+    results['totalTime'] = total_time
+    # --- END NEW ---
 
     if data.algorithm == "tsp":
         results['routeGeoJSON'] = route_geojson
